@@ -33,16 +33,17 @@ function render(canvas){
   var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
   //Determine the data range...useful for the color mapping
+  var scalar_func = gaussian;
   var mn = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, 0, 0));
   var mx = mn;
   for (var y = 0; y < canvas.height; y++) {
-    for (var x=0; x < canvas.width; x++) {
+    for (var x = 0; x < canvas.width; x++) {
       var fval = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, x, y));
       if (fval < mn) {
-        mn=fval;
-  	if (fval>mx) {
-          mx=fval;
-        }
+        mn = fval;
+      }
+      if (fval > mx) {
+        mx = fval;
       }
     }
   }
@@ -56,32 +57,23 @@ function render(canvas){
   //Color the domain according to the scalar value
   for (var y = 0; y < canvas.height; y++) {
     for (var x = 0; x < canvas.width; x++) {
-  		var fval = scalar_func(pixel2pt(canvas.width,canvas.height,x_extent,y_extent,x,y));
+      var fval = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, x, y));
+      var color = color_func(fval, mn, mx);
 
-  		var color = color_func(fval,mn,mx);
+      i = (y * canvas.width + x) * 4
 
-  		i = (y*canvas.width + x)*4
-
-  		imgData.data[i]=color[0];
-  		imgData.data[i+1]= color[1];
-  		imgData.data[i+2]= color[2];
-  		imgData.data[i+3]= color[3];
+      imgData.data[i] = color[0];
+      imgData.data[i + 1] = color[1];
+      imgData.data[i + 2] = color[2];
+      imgData.data[i + 3] = color[3];
     }
   }
-	ctx.putImageData(imgData,0,0);
+
+  ctx.putImageData(imgData, 0, 0);
 
   // Draw the grid if necessary
-  if (document.getElementById("show_grid").checked)
+  if (document.getElementById("draw_grid").checked) {
     myGrid.draw_grid(canvas);
-  //Draw glyphs if necessary
-  if (document.getElementById("show_grad").checked){
-    var scl = parseFloat(document.getElementById("line_scale").value);
-    myGrid.draw_glyphs(scl, gaussian_gradient,canvas);
-  }
-  // Draw streamlines if necessary
-  if (document.getElementById("show_streamlines").checked){
-    var seeds = parseFloat(document.getElementById("seeds").value);
-    draw_streamlines(canvas,ctx,seeds);
   }
 }
 
