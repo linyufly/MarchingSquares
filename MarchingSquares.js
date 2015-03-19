@@ -75,6 +75,9 @@ function render(canvas){
   if (document.getElementById("draw_grid").checked) {
     myGrid.draw_grid(canvas);
   }
+
+  if (document.getElementById("draw_contour").checked) {
+  }
 }
 
 //--------------------------------------------------------
