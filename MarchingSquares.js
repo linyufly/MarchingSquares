@@ -63,6 +63,10 @@ function render(canvas){
 
   //Determine the data range...useful for the color mapping
   var scalar_func = gaussian;
+  if (document.getElementById("divergence").checked) {
+    scalar_func = gaussian_divergence;
+  }
+
   var mn = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, 0, 0));
   var mx = mn;
   for (var y = 0; y < canvas.height; y++) {
