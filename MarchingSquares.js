@@ -33,6 +33,94 @@ UGrid2D.prototype.draw_contour = function(canvas, isovalues, scalar_func, line_s
   }
 }
 
+UGrid2D.prototype.draw_dual = function(canvas, isovalues, scalar_func, line_scale) {
+  var isovalue_list = isovalues.split(",");
+  var ctx = canvas.getContext('2d');
+
+  dx = canvas.width / this.resolution;
+  dy = canvas.height / this.resolution;
+
+  for (var var_id = 0; var_id < isovalue_list.length; var_id++) {
+    var curr_isovalue = isovalue_list[var_id];
+
+    var cell_vertices = [];
+
+    for (var x = 0; x < this.resolution; x++) {
+      var cell_vertex_list = [];
+
+      for (var y = 0; y < this.resolution; y++) {
+        var min_x = x * dx;
+        var min_y = y * dy;
+        var max_x = min_x + dx;
+        var max_y = min_y + dy;
+
+        var scalar_0 = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, min_x, min_y));
+        var scalar_1 = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, max_x, min_y));
+        var scalar_2 = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, max_x, max_y));
+        var scalar_3 = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, min_x, max_y));
+
+        cell_vertex_list.push(get_cell_vertex(curr_isovalue, [scalar_0, scalar_1, scalar_2, scalar_3], min_x, min_y, max_x, max_y));
+      }
+
+      cell_vertices.push(cell_vertex_list);
+    }
+
+    // Cross horizontal edges.
+    for (var y = 1; y < this.resolution; y++) {
+      var curr_y = y * dy;
+      for (var x = 0; x < this.resolution; x++) {
+        var x1 = x * dx;
+        var x2 = x1 + dx;
+
+        var b_0 = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, x1, curr_y)) > curr_isovalue;
+        var b_1 = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, x2, curr_y)) > curr_isovalue;
+
+        if (b_0 != b_1) {
+          var pt_1 = cell_vertices[x][y - 1];
+          var pt_2 = cell_vertices[x][y];
+
+          console.log(pt_1);
+
+          ctx.beginPath();
+          ctx.moveTo(pt_1[0], pt_1[1]);
+          ctx.lineWidth = line_scale;
+          ctx.lineTo(pt_2[0], pt_2[1]);
+          // set line color
+          ctx.strokeStyle = 'red';
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Cross vertical edges.
+    for (var x = 1; x < this.resolution; x++) {
+      var curr_x = x * dx;
+      for (var y = 0; y < this.resolution; y++) {
+        var y1 = y * dy;
+        var y2 = y1 + dy;
+
+        var b_0 = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, curr_x, y1)) > curr_isovalue;
+        var b_1 = scalar_func(pixel2pt(canvas.width, canvas.height, x_extent, y_extent, curr_x, y2)) > curr_isovalue;
+
+        if (b_0 != b_1) {
+          var pt_1 = cell_vertices[x - 1][y];
+          var pt_2 = cell_vertices[x][y];
+
+          console.log(pt_1);
+
+          ctx.beginPath();
+          ctx.moveTo(pt_1[0], pt_1[1]);
+          ctx.lineWidth = line_scale;
+          ctx.lineTo(pt_2[0], pt_2[1]);
+          // set line color
+          ctx.strokeStyle = 'red';
+          ctx.stroke();
+        }
+      }
+    }
+  }
+}
+
 function main() {
   // Check for the various File API support.
   if (window.File && window.FileReader && window.FileList && window.Blob) {
@@ -111,6 +199,11 @@ function render(canvas){
 
   if (document.getElementById("draw_contour").checked) {
     myGrid.draw_contour(canvas, document.getElementById("isovalues").value, scalar_func,
+                        document.getElementById("line_scale").value);
+  }
+
+  if (document.getElementById("draw_dual").checked) {
+    myGrid.draw_dual(canvas, document.getElementById("isovalues").value, scalar_func,
                         document.getElementById("line_scale").value);
   }
 }
@@ -229,3 +322,39 @@ function cell_contour(isovalue, scalar_0, scalar_1, scalar_2, scalar_3, min_x, m
     ctx.stroke();
   }
 }
+
+function get_cell_vertex(isovalue, s, min_x, min_y, max_x, max_y) {
+  var b = [s[0] > isovalue,
+           s[1] > isovalue,
+           s[2] > isovalue,
+           s[3] > isovalue];
+
+  var pt = [[min_x, min_y],
+            [max_x, min_y],
+            [max_x, max_y],
+            [min_x, max_y]];
+
+  var interx = [];
+  for (var i = 0; i < 4; i++) {
+    var j = (i + 1) % 4;
+
+    if (b[i] != b[j]) {
+      var lambda = (isovalue - s[i]) / (s[j] - s[i]);
+
+      interx.push([(pt[j][0] - pt[i][0]) * lambda + pt[i][0],
+                   (pt[j][1] - pt[i][1]) * lambda + pt[i][1]]);
+    }
+  }
+
+  var result = [0, 0];
+  for (var i = 0; i < interx.length; i++) {
+    result[0] += interx[i][0];
+    result[1] += interx[i][1];
+  }
+
+  result[0] /= interx.length;
+  result[1] /= interx.length;
+
+  return result;
+}
+

@@ -15,14 +15,15 @@
       </legend>
 
       Draw Grid <input type = "checkbox" id = "draw_grid"><br>
-      Draw Contour Lines <input type = "checkbox" id = "draw_contour"><br>
+      Draw Contour Lines <input type = "checkbox" id = "draw_contour" checked><br>
+      Draw Dual Contours (in red)  <input type = "checkbox" id = "draw_dual"><br>
       Scalar Value
       <input type="radio" name="scalar" id="gaussian" value="gaussian" checked> Gaussian
       <input type="radio" name="scalar" id="divergence" value="divergence"> Divergence<br>
 
       Grid Resolution <input type = "text" id = "grid_res" value = "10"><br>
-      Line Scale <input type = "text" id = "line_scale" value = "1.0"><br>
-      Isovalues (separated by comma) <input type = "text" id = "isovalues" value = ""><br>
+      Line Scale <input type = "text" id = "line_scale" value = "2.0"><br>
+      Isovalues (separated by comma) <input type = "text" id = "isovalues" value = "0.3, 0.5, 0.7"><br>
 
       Color Map
       <input type = "radio" name = "color" id = "rainbow" value = "rainbow" checked> Rainbow
@@ -44,3 +45,4 @@
 </body>
 
 </html>
+
